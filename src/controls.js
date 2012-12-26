@@ -548,6 +548,7 @@ _V_.SeekBar = _V_.Slider.extend({
 
       // Set property names to bar and handle to match with the parent Slider class is looking for
       "bar": { componentClass: "PlayProgressBar" },
+      "markBar": { componentClass: "MarkBar" },
       "handle": { componentClass: "SeekHandle" }
     }
   },
@@ -556,6 +557,7 @@ _V_.SeekBar = _V_.Slider.extend({
 
   init: function(player, options){
     this._super(player, options);
+    player.on("markchange", _V_.proxy(this, this.update));
   },
 
   createElement: function(){
@@ -595,6 +597,30 @@ _V_.SeekBar = _V_.Slider.extend({
     this.player.scrubbing = false;
     if (this.videoWasPlaying) {
       this.player.play();
+    }
+  },
+
+  update: function(){
+    this._super();
+
+    var markBar = this.markBar;
+    var inTime = this.player.inTime() || 0
+    var markInTime = this.player.markInTime();
+    var markOutTime = this.player.markOutTime();
+    if(isNaN(markOutTime) && markInTime < this.player.currentTime()) {
+      markOutTime = this.player.currentTime();
+    }
+    
+    if(!isNaN(markInTime)) {
+      var duration = this.player.duration();
+      var markInPercent = (markInTime - inTime) / duration;
+      var markOutPercent = (markOutTime - inTime) / duration;
+      markBar.el.style.left = _V_.round(markInPercent * 100, 2) + "%";
+      markBar.el.style.width = _V_.round((markOutPercent-markInPercent) * 100, 2) + "%";
+    }
+    else {
+      markBar.el.style.left = "0px";
+      markBar.el.style.width = "0px";
     }
   },
 
@@ -654,6 +680,19 @@ _V_.SeekHandle = _V_.Component.extend({
   }
 
 });
+
+// Mark Bar
+_V_.MarkBar = _V_.Component.extend({
+
+  createElement: function(){
+    return this._super("div", {
+      className: "vjs-mark-bar",
+      innerHTML: '<span class="vjs-control-text">0</span>'
+    });
+  }
+
+});
+
 
 /* Volume Scrubber
 ================================================================================ */

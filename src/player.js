@@ -74,6 +74,7 @@ _V_.Player = _V_.Component.extend({
     this.on("progress", this.onProgress);
     this.on("durationchange", this.onDurationChange);
     this.on("error", this.onError);
+    this.on("loadedmetadata", this.onLoadedMetadata);
 
     // When the API is ready, loop through the components and add to the player.
     if (options.controls) {
@@ -373,6 +374,13 @@ _V_.Player = _V_.Component.extend({
     _V_.log("Video Error", e);
   },
 
+  onLoadedMetadata: function(){
+    this.values.loadedmetadata = true;
+
+    if(this.inTime() > 0) {
+      this.currentTime(this.inTime());
+    }
+  },
 /* Player API
 ================================================================================ */
 
@@ -479,11 +487,22 @@ _V_.Player = _V_.Component.extend({
     return this.values.currentTime = (this.techGet("currentTime") || 0);
   },
 
+  // A flag stating if the metadata has been loaded yet.
+  loadedmetadata: function(){
+    return (this.values.loadedmetadata == true);
+  },
+
   // The time that the video should start from.
   inTime: function(seconds){
     if (seconds !== undefined) {
       this.values.inTime = parseFloat(seconds);
-      this.currentTime(this.values.inTime);
+      
+      // Only set the current time if the video has begun loading. Otherwise
+      // we'll get an error.
+      if(this.loadedmetadata()) {
+        this.currentTime(this.values.inTime);
+      }
+      
       return this;
     }
 
@@ -494,10 +513,45 @@ _V_.Player = _V_.Component.extend({
   outTime: function(seconds){
     if (seconds !== undefined) {
       this.values.outTime = parseFloat(seconds);
+      this.trigger("timeupdate");
       return this;
     }
 
     return this.values.outTime;
+  },
+
+  // The time that a marked subsection starts.
+  markInTime: function(seconds){
+    if (seconds !== undefined) {
+      this.values.markInTime = parseFloat(seconds);
+      this.trigger("markchange");
+      return this;
+    }
+
+    return this.values.markInTime;
+  },
+
+  // The time that a marked subsection starts.
+  markOutTime: function(seconds){
+    if (seconds !== undefined) {
+      this.values.markOutTime = parseFloat(seconds);
+      this.trigger("markchange");
+      return this;
+    }
+
+    return this.values.markOutTime;
+  },
+
+  // Marks in at the current time.
+  markIn: function(){
+    this.markInTime(this.currentTime());
+    return this;
+  },
+
+  // Marks out at the current time.
+  markOut: function(){
+    this.markOutTime(this.currentTime());
+    return this;
   },
 
   // http://dev.w3.org/html5/spec/video.html#dom-media-duration
@@ -535,7 +589,7 @@ _V_.Player = _V_.Component.extend({
   // Calculates how much time is left. Not in spec, but useful.
   remainingTime: function(){
     var inTime = this.inTime() || 0;
-    return Math.min(this.duration(), Math.max(0, this.duration() - this.currentTime()));
+    return Math.min(this.duration(), Math.max(0, this.duration() - (this.currentTime() - inTime)));
   },
 
   // http://dev.w3.org/html5/spec/video.html#dom-media-buffered

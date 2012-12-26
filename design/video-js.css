@@ -228,6 +228,7 @@ so you can upgrade to newer versions easier. You can remove all these styles by 
   background: -ms-linear-gradient(top, #111, #262626);
   background: linear-gradient(top, #111, #262626);
 }
+.vjs-default-skin .vjs-progress-holder .vjs-mark-bar,
 .vjs-default-skin .vjs-progress-holder .vjs-play-progress,
 .vjs-default-skin .vjs-progress-holder .vjs-load-progress { /* Progress Bars */
   position: absolute; display: block; height: 1.0em; margin: 0; padding: 0;
@@ -267,6 +268,18 @@ so you can upgrade to newer versions easier. You can remove all these styles by 
   background: -o-linear-gradient(top, #666, #333);
   background: -ms-linear-gradient(top, #666, #333);
   background: linear-gradient(top, #666, #333);
+}
+.vjs-default-skin .vjs-mark-bar {
+  opacity: 0.8;
+
+  /* CSS Gradient */
+  background: #F9D423;
+  background: -moz-linear-gradient(top, #F9D423, #BFA31B);
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#F9D423), to(#BFA31B));
+  background: -webkit-linear-gradient(top, #F9D423, #BFA31B);
+  background: -o-linear-gradient(top, #F9D423, #BFA31B);
+  background: -ms-linear-gradient(top, #F9D423, #BFA31B);
+  background: linear-gradient(top, #F9D423, #BFA31B);
 }
 
 .vjs-default-skin div.vjs-seek-handle {
