@@ -111,6 +111,17 @@ _V_.Player = _V_.Component.extend({
       //   All playback technologies respect preload false.
       this.src(options.sources);
     }
+
+    // Make sure that the time never goes past the end of the out time.
+    this.addEvent("timeupdate", function(){
+      var outTime = this.outTime();
+      if(!isNaN(outTime) && this.currentTime() >= outTime) {
+        if(this.currentTime > outTime) {
+          this.currentTime(outTime);
+        }
+        this.pause();
+      }
+    })
   },
 
   destroy: function(){
@@ -303,7 +314,6 @@ _V_.Player = _V_.Component.extend({
 
     // Watch for native timeupdate event
     this.tech.on("timeupdate", function(){
-
       // Remove this listener from the element
       this.removeEvent("timeupdate", arguments.callee);
 
@@ -344,10 +354,6 @@ _V_.Player = _V_.Component.extend({
   },
 
   onPlay: function(){
-    if(this.currentTime() < this.inTime() || this.currentTime() > this.outTime()) {
-      this.currentTime(this.inTime());
-    }
-
     _V_.removeClass(this.el, "vjs-paused");
     _V_.addClass(this.el, "vjs-playing");
   },
@@ -451,6 +457,10 @@ _V_.Player = _V_.Component.extend({
 
   // http://dev.w3.org/html5/spec/video.html#dom-media-play
   play: function(){
+    if(this.currentTime() < this.inTime() || this.currentTime() > this.outTime()) {
+      this.currentTime(this.inTime());
+    }
+
     this.techCall("play");
     return this;
   },
