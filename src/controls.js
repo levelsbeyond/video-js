@@ -32,8 +32,10 @@ _V_.ControlBar = _V_.Component.extend({
 
     player.one("play", this.proxy(function(){
       this.fadeIn();
+      /*
       this.player.on("mouseover", this.proxy(this.fadeIn));
       this.player.on("mouseout", this.proxy(this.fadeOut));
+      */
     }));
 
   },
@@ -563,7 +565,8 @@ _V_.SeekBar = _V_.Slider.extend({
   },
 
   getPercent: function(){
-    return this.player.currentTime() / this.player.duration();
+    var inTime = this.player.inTime() || 0;
+    return Math.min(1, Math.max(0, (this.player.currentTime() - inTime) / this.player.duration()));
   },
 
   onMouseDown: function(event){
@@ -576,7 +579,8 @@ _V_.SeekBar = _V_.Slider.extend({
   },
 
   onMouseMove: function(event){
-    var newTime = this.calculateDistance(event) * this.player.duration();
+    var inTime = this.player.inTime() || 0;
+    var newTime = (this.calculateDistance(event) * this.player.duration()) + inTime;
 
     // Don't let video end while scrubbing.
     if (newTime == this.player.duration()) { newTime = newTime - 0.1; }

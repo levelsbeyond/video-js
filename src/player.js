@@ -343,6 +343,10 @@ _V_.Player = _V_.Component.extend({
   },
 
   onPlay: function(){
+    if(this.currentTime() < this.inTime() || this.currentTime() > this.outTime()) {
+      this.currentTime(this.inTime());
+    }
+
     _V_.removeClass(this.el, "vjs-paused");
     _V_.addClass(this.el, "vjs-playing");
   },
@@ -475,6 +479,27 @@ _V_.Player = _V_.Component.extend({
     return this.values.currentTime = (this.techGet("currentTime") || 0);
   },
 
+  // The time that the video should start from.
+  inTime: function(seconds){
+    if (seconds !== undefined) {
+      this.values.inTime = parseFloat(seconds);
+      this.currentTime(this.values.inTime);
+      return this;
+    }
+
+    return this.values.inTime;
+  },
+
+  // The time that the video should end at.
+  outTime: function(seconds){
+    if (seconds !== undefined) {
+      this.values.outTime = parseFloat(seconds);
+      return this;
+    }
+
+    return this.values.outTime;
+  },
+
   // http://dev.w3.org/html5/spec/video.html#dom-media-duration
   // Duration should return NaN if not available. ParseFloat will turn false-ish values to NaN.
   duration: function(seconds){
@@ -486,12 +511,31 @@ _V_.Player = _V_.Component.extend({
       return this;
     }
 
-    return this.values.duration;
+    var inTime = this.inTime();
+    var outTime = this.outTime();
+    if(isNaN(inTime)) {
+        if(isNaN(outTime)) {
+            return this.values.duration;
+        }
+        else {
+            return outTime;
+        }
+    }
+    else {
+        if(isNaN(outTime)) {
+            return this.values.duration - inTime;
+        }
+        else {
+            return outTime - inTime;
+        }
+    }
+    
   },
 
   // Calculates how much time is left. Not in spec, but useful.
   remainingTime: function(){
-    return this.duration() - this.currentTime();
+    var inTime = this.inTime() || 0;
+    return Math.min(this.duration(), Math.max(0, this.duration() - this.currentTime()));
   },
 
   // http://dev.w3.org/html5/spec/video.html#dom-media-buffered
@@ -514,7 +558,7 @@ _V_.Player = _V_.Component.extend({
 
   // Calculates amount of buffer is full. Not in spec but useful.
   bufferedPercent: function(){
-    return (this.duration()) ? this.buffered().end(0) / this.duration() : 0;
+    return (this.duration()) ? Math.min(1, this.buffered().end(0) / this.duration()) : 0;
   },
 
   // http://dev.w3.org/html5/spec/video.html#dom-media-volume
